@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-a@keco5a2o!cpl!yi@kar-+p%aq=h^(c28c)73cj$tj(8+r%d&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["maze-generator-django.herokuapp.com"]
 
 
 # Application definition
