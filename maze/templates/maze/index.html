@@ -7,6 +7,7 @@
       main {
         max-width: 1000px;
         margin: 0 auto;
+        font-family: monospace;
       }
       .row {
         display: block;
@@ -18,17 +19,27 @@
       }
       .row > span {
         float: left;
-        width: 10px;
-        height: 10px;
+        width: 30px;
+        height: 30px;
       }
       .unvisited {
         background-color: grey;
       }
+      .coord {
+        font-size: .5em;
+      }
       .wall {
         background-color: black;
+        color: white;
       }
       .cell {
         background-color: none;
+      }
+      .start-point {
+        background-color: red;
+      }
+      .dead-end {
+        background-color: purple;
       }
     </style>
   </head>
@@ -36,8 +47,8 @@
     <main>
       {% for row in maze %}
       <div class="row">
-        {% for pos in row %}
-          <span class="{{ pos.class_name }}"></span>
+        {% for coord in row %}
+          <span class="coord {{ coord.class_name }}">{{ coord.x }},{{ coord.y }}</span>
         {% endfor %}
       </div>
       {% endfor %}
