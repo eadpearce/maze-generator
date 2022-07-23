@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .row {
+        display: block;
+      }
+      .row:after {
+        display: block;
+        content: '';
+        clear: both;
+      }
+      .row > span {
+        float: left;
+        width: 10px;
+        height: 10px;
+      }
+      .unvisited {
+        background-color: grey;
+      }
+      .wall {
+        background-color: black;
+      }
+      .cell {
+        background-color: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      {% for row in maze %}
+      <div class="row">
+        {% for pos in row %}
+          <span class="{{ pos.class_name }}"></span>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      <form action="/" method="get">
+        {{ form }}
+        <input type="submit" value="Regenerate">
+      </form>
+    </main>
+  </body>
+</html>
