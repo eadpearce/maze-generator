@@ -19,15 +19,18 @@ class Cell(Coordinate):
             return "start-point"
         elif self.dead_end:
             return "dead-end"
-        elif self.entry_point:
-            return "entry-point"
+        elif self.entrance:
+            return "entrance"
+        elif self.exit:
+            return "exit"
         return "cell"
 
-    def __init__(self, x, y, start_point=False, dead_end=False, entry_point=False):
+    def __init__(self, x, y, start_point=False, dead_end=False, entrance=False, exit=False):
         super().__init__(x, y)
         self.start_point = start_point
         self.dead_end = dead_end
-        self.entry_point = entry_point
+        self.entrance = entrance
+        self.exit = exit
 
     def __str__(self):
         return f"{type(self).__name__} at ({self.x}, {self.y})"
@@ -278,12 +281,12 @@ class Index(FormView):
         # Set entrance and exit
         for i in range(0, self.width):
             if isinstance(self.maze[1][i], Cell):
-                self.maze[0][i] = Cell(i, 0, entry_point=True)
+                self.maze[0][i] = Cell(i, 0, entrance=True)
                 break
 
         for i in range(self.width-1, 0, -1):
             if isinstance(self.maze[self.height-2][i], Cell):
-                self.maze[self.height-1][i] = Cell(i, self.height - 1, entry_point=True)
+                self.maze[self.height-1][i] = Cell(i, self.height - 1, exit=True)
                 break
 
         # Mark the dead ends
