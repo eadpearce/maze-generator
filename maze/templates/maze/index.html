@@ -18,15 +18,22 @@
       }
       .row > span {
         float: left;
+        {% if debug %}
         width: 30px;
         height: 30px;
+        {% else %}
+        width: 10px;
+        height: 10px;
+        {% endif %}
       }
       .unvisited {
         background-color: grey;
       }
       .coord {
         font-size: .5em;
+        {% if debug %}
         border: 1px solid white;
+        {% endif %}
         box-sizing: border-box;
       }
       .wall {
@@ -36,6 +43,7 @@
       .cell {
         background-color: none;
       }
+      {% if debug %}
       .start-point {
         background-color: red;
       }
@@ -48,6 +56,7 @@
       .exit {
         background-color: pink;
       }
+      {% endif %}
     </style>
   </head>
   <body>
@@ -55,7 +64,7 @@
       {% for row in maze %}
       <div class="row">
         {% for coord in row %}
-          <span class="coord {{ coord.class_name }}">{{ coord.x }},{{ coord.y }}</span>
+          <span class="coord {{ coord.class_name }}">{% if debug %}{{ coord.x }},{{ coord.y }}{% endif %}</span>
         {% endfor %}
       </div>
       {% endfor %}

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.views.generic import FormView
 from maze.forms import MazeForm
 import random
@@ -26,6 +27,8 @@ class Cell(Coordinate):
     def class_name(self):
         if self.dead_end:
             return "dead-end"
+        elif self.start_point:
+            return "start-point"
         elif self.entrance:
             return "entrance"
         elif self.exit:
@@ -200,19 +203,20 @@ class Index(FormView):
 
     @property
     def width(self):
-        return min(int(self.request.GET.get("width", 10)), 33)
+        return min(int(self.request.GET.get("width", 10)), 100)
 
     @property
     def height(self):
-        return min(int(self.request.GET.get("height", 10)), 33)
+        return min(int(self.request.GET.get("height", 10)), 100)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["maze"] = Maze(self.width, self.height)
+        context["maze"] = Maze(self.width, self.height).rows
+        context["debug"] = settings.DEBUG
         return context
 
     def get_initial(self):
         return {
-            "width": min(int(self.request.GET.get("width", 10)), 33),
-            "height": min(int(self.request.GET.get("height", 10)), 33)
+            "width": min(int(self.request.GET.get("width", 10)), 100),
+            "height": min(int(self.request.GET.get("height", 10)), 100)
         }
