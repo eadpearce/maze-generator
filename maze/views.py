@@ -88,7 +88,7 @@ class Index(FormView):
     def surrounding_cells(self, coord):
         s_cells = 0
         s_coords = self.get_surrounding_coords(coord.x, coord.y)
-        if coord.y > 0 and coord.y < self.maze.max_x and coord.x > 0 and coord.x < self.maze.max_y:
+        if coord.y > 0 and coord.y < self.maze.max_y and coord.x > 0 and coord.x < self.maze.max_x:
             for x, y in s_coords:
                 if isinstance(self.maze[y][x], Cell):
                     s_cells += 1
