@@ -106,38 +106,37 @@ class Index(FormView):
     def create_coordinate(self, cls, x, y, **kwargs):
         self.maze[y][x] = cls(x, y, **kwargs)
 
+    def get_surrounding_coords(self, x, y):
+        return [
+            [x-1, y],  # left
+            [x+1, y],  # right
+            [x, y-1],  # top
+            [x, y+1],  # bottom
+        ]
+
     def create_maze(self):
         self.maze = Maze(self.width, self.height)
 
         # Randomize starting point and set it a cell
-        starting_height = int(random.random()*self.maze.height)
-        starting_width = int(random.random()*self.maze.width)
-        if starting_height == 0:
-            starting_height += 1
-        if starting_height == self.maze.max_y:
-            starting_height -= 1
-        if starting_width == 0:
-            starting_width += 1
-        if starting_width == self.maze.max_x:
-            starting_width -= 1
+        starting_height = random.randint(1, self.maze.max_y - 1)
+        starting_width = random.randint(1, self.maze.max_x - 1)
 
         # Mark it as a cell and add surrounding walls to the list
         self.create_coordinate(Cell, starting_width, starting_height)
         walls = []
-        walls.append([starting_height - 1, starting_width])
-        walls.append([starting_height, starting_width - 1])
-        walls.append([starting_height, starting_width + 1])
-        walls.append([starting_height + 1, starting_width])
 
-        # Denote walls in maze
-        self.create_coordinate(Wall, starting_width, starting_height - 1)
-        self.create_coordinate(Wall, starting_width - 1, starting_height)
-        self.create_coordinate(Wall, starting_width + 1, starting_height)
-        self.create_coordinate(Wall, starting_width, starting_height + 1)
+        for x, y in self.get_surrounding_coords(starting_width, starting_height):
+            walls.append([y, x])
+            # Denote walls in maze
+            self.create_coordinate(Wall, x, y)
 
         while walls:
             # Pick a random wall
             rand_wall = random.choice(walls)
+
+            # NOTE COORD ORDER
+            # maze[y][x]
+            # rand_wall[y][x]
 
             # Check if it is a left wall
             if (rand_wall[1] != 0):
