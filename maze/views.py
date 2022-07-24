@@ -5,6 +5,33 @@ import random
 # Maze code adapted from https://github.com/OrWestSide/python-scripts/blob/master/maze.py
 
 
+class Maze:
+
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.rows = []
+
+        # Denote all cells as unvisited
+        for y in range(0, self.height):
+            self.rows.append([Unvisited(x, y) for x in range(0, self.width)])
+
+    def __getitem__(self, item):
+        return self.rows[item]
+
+    @property
+    def max_x(self):
+        return self.width - 1
+
+    @property
+    def max_y(self):
+        return self.height - 1
+
+    @property
+    def all(self):
+        return [coord for row in self.rows for coord in row]
+
+
 class Coordinate:
     def __init__(self, x, y):
         self.x = x
@@ -80,10 +107,7 @@ class Index(FormView):
         self.maze[y][x] = cls(x, y, **kwargs)
 
     def create_maze(self):
-        self.maze = []
-        # Denote all cells as unvisited
-        for y in range(0, self.height):
-            self.maze.append([Unvisited(x, y) for x in range(0, self.width)])
+        self.maze = Maze(self.width, self.height)
 
         # Randomize starting point and set it a cell
         starting_height = int(random.random()*self.height)
