@@ -55,9 +55,7 @@ class Cell(Coordinate):
 
     @property
     def class_name(self):
-        if self.start_point:
-            return "start-point"
-        elif self.dead_end:
+        if self.dead_end:
             return "dead-end"
         elif self.entrance:
             return "entrance"
@@ -71,6 +69,9 @@ class Cell(Coordinate):
         self.dead_end = dead_end
         self.entrance = entrance
         self.exit = exit
+        self.entry_point = False
+        if self.entrance or self.exit:
+            self.entry_point = True
 
 
 class Wall(Coordinate):
@@ -115,29 +116,30 @@ class Index(FormView):
     def add_to_maze(self, obj, **kwargs):
         self.maze[obj.x][obj.y] = obj
 
-    def get_adjacent_coords(self, x, y):
+    def get_adjacent_coords(self, x, y, include_edges=False):
         all = [
             [x-1, y],  # left
             [x+1, y],  # right
             [x, y-1],  # top
             [x, y+1],  # bottom
         ]
-        # exclude edges
+        if include_edges:
+            return all
         return [
             [x, y] for x, y in all
             if x > 0 and x < self.maze.max_x and
             y > 0 and y < self.maze.max_y
         ]
 
-    def get_adjacent_squares(self, coord):
-        coords = self.get_adjacent_coords(coord.x, coord.y)
+    def get_adjacent_squares(self, coord, **kwargs):
+        coords = self.get_adjacent_coords(coord.x, coord.y, **kwargs)
         return [
             self.maze[x][y] for x, y in coords
         ]
 
-    def get_adjacent_cells(self, coord):
+    def get_adjacent_cells(self, coord, **kwargs):
         return [
-            c for c in self.get_adjacent_squares(coord) if isinstance(c, Cell)
+            c for c in self.get_adjacent_squares(coord, **kwargs) if isinstance(c, Cell)
         ]
 
     def create_maze(self):
@@ -188,25 +190,21 @@ class Index(FormView):
                 self.add_to_maze(Wall(coord.x, coord.y))
 
         # Set entrance and exit
-        # TODO: randomise this?
         # Entrance is at the top edge
-        for i in range(0, self.maze.width):
-            if isinstance(self.maze[i][1], Cell):
-                self.add_to_maze(Cell(i, 0, entrance=True))
-                break
+        rand_square = random.choice([s for s in self.maze.rows[1] if isinstance(s, Cell)])
+        self.add_to_maze(Cell(rand_square.x, 0, entrance=True))
 
         # Exit is at the bottom edge
-        for i in range(1, self.maze.width):
-            if isinstance(self.maze[i][self.maze.max_y-1], Cell):
-                self.add_to_maze(Cell(i, self.maze.max_y, exit=True))
-                break
+        rand_square = random.choice([s for s in self.maze.rows[-2] if isinstance(s, Cell)])
+        self.add_to_maze(Cell(rand_square.x, self.maze.max_y, exit=True))
 
         # Mark the dead ends
         for coord in self.maze.all:
-            if isinstance(coord, Cell):
-                s_cells = self.get_adjacent_cells(coord)
-                if len(s_cells) == 1:
-                    coord.dead_end = True
+            if isinstance(coord, Cell) and not coord.entry_point:
+                s_cells = self.get_adjacent_cells(coord, include_edges=True)
+                if not any([s.entry_point for s in s_cells]) and len(s_cells) == 1:
+                    if not coord.entry_point:
+                        coord.dead_end = True
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
