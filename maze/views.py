@@ -170,9 +170,9 @@ class Index(FormView):
                     if isinstance(o_square, Unvisited):
                         if not self.is_edge(o_square):
                             new_wall = Wall(o_square.x, o_square.y)
+                            self.add_to_maze(new_wall)
+                            self.walls.add(new_wall)
                         self.add_to_maze(Cell(rand_wall.x, rand_wall.y))
-                        self.add_to_maze(new_wall)
-                        self.walls.add(new_wall)
 
                         for a_square in adjacent_squares:
                             if isinstance(a_square, Unvisited):
