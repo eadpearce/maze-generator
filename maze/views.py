@@ -147,21 +147,21 @@ class Index(FormView):
                         if (rand_wall.y != 0):
                             if not isinstance(self.maze[rand_wall.y-1][rand_wall.x], Cell):
                                 self.create_coordinate(Wall, rand_wall.x, rand_wall.y-1)
-                            if ([rand_wall.y-1, rand_wall.x] not in walls):
+                            if (Wall(rand_wall.x, rand_wall.y-1) not in walls):
                                 walls.append(Wall(rand_wall.x, rand_wall.y-1))
 
                         # Bottom cell
                         if (rand_wall.y != self.maze.max_y):
                             if not isinstance(self.maze[rand_wall.y+1][rand_wall.x], Cell):
                                 self.create_coordinate(Wall, rand_wall.x, rand_wall.y+1)
-                            if ([rand_wall.y+1, rand_wall.x] not in walls):
+                            if (Wall(rand_wall.x, rand_wall.y+1) not in walls):
                                 walls.append(Wall(rand_wall.x, rand_wall.y+1))
 
                         # Leftmost cell
                         if (rand_wall.x != 0):
                             if not isinstance(self.maze[rand_wall.y][rand_wall.x-1], Cell):
                                 self.create_coordinate(Wall, rand_wall.x-1, rand_wall.y)
-                            if ([rand_wall.y, rand_wall.x-1] not in walls):
+                            if (Wall(rand_wall.x-1, rand_wall.y) not in walls):
                                 walls.append(Wall(rand_wall.x-1, rand_wall.y))
 
                     # Delete wall
@@ -186,21 +186,21 @@ class Index(FormView):
                         if (rand_wall.y != 0):
                             if not isinstance(self.maze[rand_wall.y-1][rand_wall.x], Cell):
                                 self.create_coordinate(Wall, rand_wall.x, rand_wall.y-1)
-                            if ([rand_wall.y-1, rand_wall.x] not in walls):
+                            if (Wall(rand_wall.x, rand_wall.y-1) not in walls):
                                 walls.append(Wall(rand_wall.x, rand_wall.y-1))
 
                         # Leftmost cell
                         if (rand_wall.x != 0):
                             if not isinstance(self.maze[rand_wall.y][rand_wall.x-1], Cell):
                                 self.create_coordinate(Wall, rand_wall.x-1, rand_wall.y)
-                            if ([rand_wall.y, rand_wall.x-1] not in walls):
+                            if (Wall(rand_wall.x-1, rand_wall.y) not in walls):
                                 walls.append(Wall(rand_wall.x-1, rand_wall.y))
 
                         # Rightmost cell
                         if (rand_wall.x != self.maze.max_x):
                             if not isinstance(self.maze[rand_wall.y][rand_wall.x+1], Cell):
                                 self.create_coordinate(Wall, rand_wall.x+1, rand_wall.y)
-                            if ([rand_wall.y, rand_wall.x+1] not in walls):
+                            if (Wall(rand_wall.x+1, rand_wall.y) not in walls):
                                 walls.append(Wall(rand_wall.x+1, rand_wall.y))
 
                     # Delete wall
@@ -224,17 +224,17 @@ class Index(FormView):
                         if (rand_wall.y != self.maze.max_y):
                             if not isinstance(self.maze[rand_wall.y+1][rand_wall.x], Cell):
                                 self.create_coordinate(Wall, rand_wall.x, rand_wall.y+1)
-                            if ([rand_wall.y+1, rand_wall.x] not in walls):
+                            if (Wall(rand_wall.x, rand_wall.y+1) not in walls):
                                 walls.append(Wall(rand_wall.x, rand_wall.y+1))
                         if (rand_wall.x != 0):
                             if not isinstance(self.maze[rand_wall.y][rand_wall.x-1], Cell):
                                 self.create_coordinate(Wall, rand_wall.x-1, rand_wall.y)
-                            if ([rand_wall.y, rand_wall.x-1] not in walls):
+                            if (Wall(rand_wall.x-1, rand_wall.y) not in walls):
                                 walls.append(Wall(rand_wall.x-1, rand_wall.y))
                         if (rand_wall.x != self.maze.max_x):
                             if not isinstance(self.maze[rand_wall.y][rand_wall.x+1], Cell):
                                 self.create_coordinate(Wall, rand_wall.x+1, rand_wall.y)
-                            if ([rand_wall.y, rand_wall.x+1] not in walls):
+                            if (Wall(rand_wall.x+1, rand_wall.y) not in walls):
                                 walls.append(Wall(rand_wall.x+1, rand_wall.y))
 
                     # Delete wall
@@ -258,17 +258,17 @@ class Index(FormView):
                         if (rand_wall.x != self.maze.max_x):
                             if not isinstance(self.maze[rand_wall.y][rand_wall.x+1], Cell):
                                 self.create_coordinate(Wall, rand_wall.x+1, rand_wall.y)
-                            if ([rand_wall.y, rand_wall.x+1] not in walls):
+                            if (Wall(rand_wall.x+1, rand_wall.y) not in walls):
                                 walls.append(Wall(rand_wall.x+1, rand_wall.y))
                         if (rand_wall.y != self.maze.max_y):
                             if not isinstance(self.maze[rand_wall.y+1][rand_wall.x], Cell):
                                 self.create_coordinate(Wall, rand_wall.x, rand_wall.y+1)
-                            if ([rand_wall.y+1, rand_wall.x] not in walls):
+                            if (Wall(rand_wall.x, rand_wall.y+1) not in walls):
                                 walls.append(Wall(rand_wall.x, rand_wall.y+1))
                         if (rand_wall.y != 0):
                             if not isinstance(self.maze[rand_wall.y-1][rand_wall.x], Cell):
                                 self.create_coordinate(Wall, rand_wall.x, rand_wall.y-1)
-                            if ([rand_wall.y-1, rand_wall.x] not in walls):
+                            if (Wall(rand_wall.x, rand_wall.y-1) not in walls):
                                 walls.append(Wall(rand_wall.x, rand_wall.y-1))
 
                     # Delete wall
