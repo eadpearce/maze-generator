@@ -266,13 +266,13 @@ class Index(FormView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        width = int(self.request.GET.get("width", 10))
-        height = int(self.request.GET.get("height", 10))
+        width = min(int(self.request.GET.get("width", 10)), 33)
+        height = min(int(self.request.GET.get("height", 10)), 33)
         context["maze"] = self.create_maze(width=width, height=height)
         return context
 
     def get_initial(self):
         return {
-            "width": int(self.request.GET.get("width", 10)),
-            "height": int(self.request.GET.get("height", 10))
+            "width": min(int(self.request.GET.get("width", 10)), 33),
+            "height": min(int(self.request.GET.get("height", 10)), 33)
         }
