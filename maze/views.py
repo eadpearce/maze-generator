@@ -5,37 +5,6 @@ import random
 # Maze code adapted from https://github.com/OrWestSide/python-scripts/blob/master/maze.py
 
 
-class Maze:
-
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.cols = []
-
-        # Denote all cells as unvisited
-        for x in range(0, self.width):
-            self.cols.append([Unvisited(x, y) for y in range(0, self.height)])
-
-    def __getitem__(self, item):
-        return self.cols[item]
-
-    @property
-    def max_x(self):
-        return self.width - 1
-
-    @property
-    def max_y(self):
-        return self.height - 1
-
-    @property
-    def all(self):
-        return [coord for row in self.rows for coord in row]
-
-    @property
-    def rows(self):
-        return list(map(list, zip(*self.cols)))
-
-
 class Coordinate:
     def __init__(self, x, y):
         self.x = x
@@ -82,18 +51,37 @@ class Unvisited(Coordinate):
     class_name = "unvisited"
 
 
-class Index(FormView):
-    template_name = "maze/index.html"
-    form_class = MazeForm
-    success_url = "/"
+class Maze:
+
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.cols = []
+
+        # Denote all cells as unvisited
+        for x in range(0, self.width):
+            self.cols.append([Unvisited(x, y) for y in range(0, self.height)])
+
+        self.create_maze()
+
+    def __getitem__(self, item):
+        return self.cols[item]
 
     @property
-    def width(self):
-        return min(int(self.request.GET.get("width", 10)), 33)
+    def max_x(self):
+        return self.width - 1
 
     @property
-    def height(self):
-        return min(int(self.request.GET.get("height", 10)), 33)
+    def max_y(self):
+        return self.height - 1
+
+    @property
+    def all(self):
+        return [coord for row in self.rows for coord in row]
+
+    @property
+    def rows(self):
+        return list(map(list, zip(*self.cols)))
 
     def opposite_squares(self, square):
         squares = []
@@ -101,20 +89,20 @@ class Index(FormView):
 
         if adjacent_cells:
             for c in adjacent_cells:
-                cell = self.maze[c.x][c.y]
+                cell = self.cols[c.x][c.y]
                 opposite_forward = square + (cell - square)
                 opposite_back = square - (cell - square)
 
-                squares.append(self.maze[opposite_forward.x][opposite_forward.y])
-                squares.append(self.maze[opposite_back.x][opposite_back.y])
+                squares.append(self.cols[opposite_forward.x][opposite_forward.y])
+                squares.append(self.cols[opposite_back.x][opposite_back.y])
 
         return squares
 
     def is_edge(self, coord):
-        return not (coord.x > 0 and coord.x < self.maze.max_x and coord.y > 0 and coord.y < self.maze.max_y)
+        return not (coord.x > 0 and coord.x < self.max_x and coord.y > 0 and coord.y < self.max_y)
 
     def add_to_maze(self, obj, **kwargs):
-        self.maze[obj.x][obj.y] = obj
+        self.cols[obj.x][obj.y] = obj
 
     def get_adjacent_coords(self, x, y, include_edges=False):
         all = [
@@ -127,14 +115,14 @@ class Index(FormView):
             return all
         return [
             [x, y] for x, y in all
-            if x > 0 and x < self.maze.max_x and
-            y > 0 and y < self.maze.max_y
+            if x > 0 and x < self.max_x and
+            y > 0 and y < self.max_y
         ]
 
     def get_adjacent_squares(self, coord, **kwargs):
         coords = self.get_adjacent_coords(coord.x, coord.y, **kwargs)
         return [
-            self.maze[x][y] for x, y in coords
+            self.cols[x][y] for x, y in coords
         ]
 
     def get_adjacent_cells(self, coord, **kwargs):
@@ -143,11 +131,9 @@ class Index(FormView):
         ]
 
     def create_maze(self):
-        self.maze = Maze(self.width, self.height)
-
         # Randomize starting point and set it as a cell
-        starting_height = random.randint(1, self.maze.max_y - 1)
-        starting_width = random.randint(1, self.maze.max_x - 1)
+        starting_height = random.randint(1, self.max_y - 1)
+        starting_width = random.randint(1, self.max_x - 1)
 
         # Mark it as a cell and add surrounding walls to the list
         self.add_to_maze(Cell(starting_width, starting_height, start_point=True))
@@ -185,31 +171,44 @@ class Index(FormView):
             self.walls.remove(rand_wall)
 
         # Mark the remaining unvisited cells as walls
-        for coord in self.maze.all:
+        for coord in self.all:
             if isinstance(coord, Unvisited):
                 self.add_to_maze(Wall(coord.x, coord.y))
 
         # Set entrance and exit
         # Entrance is at the top edge
-        rand_square = random.choice([s for s in self.maze.rows[1] if isinstance(s, Cell)])
+        rand_square = random.choice([s for s in self.rows[1] if isinstance(s, Cell)])
         self.add_to_maze(Cell(rand_square.x, 0, entrance=True))
 
         # Exit is at the bottom edge
-        rand_square = random.choice([s for s in self.maze.rows[-2] if isinstance(s, Cell)])
-        self.add_to_maze(Cell(rand_square.x, self.maze.max_y, exit=True))
+        rand_square = random.choice([s for s in self.rows[-2] if isinstance(s, Cell)])
+        self.add_to_maze(Cell(rand_square.x, self.max_y, exit=True))
 
         # Mark the dead ends
-        for coord in self.maze.all:
+        for coord in self.all:
             if isinstance(coord, Cell) and not coord.entry_point:
                 s_cells = self.get_adjacent_cells(coord, include_edges=True)
                 if not any([s.entry_point for s in s_cells]) and len(s_cells) == 1:
                     if not coord.entry_point:
                         coord.dead_end = True
 
+
+class Index(FormView):
+    template_name = "maze/index.html"
+    form_class = MazeForm
+    success_url = "/"
+
+    @property
+    def width(self):
+        return min(int(self.request.GET.get("width", 10)), 33)
+
+    @property
+    def height(self):
+        return min(int(self.request.GET.get("height", 10)), 33)
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        self.create_maze()
-        context["maze"] = self.maze.rows
+        context["maze"] = Maze(self.width, self.height)
         return context
 
     def get_initial(self):
