@@ -1,0 +1,62 @@
+
+
+Start with a grid full of unvisited squares.
+
+X X X X X
+X X X X X
+X X X X X
+X X X X X
+X X X X X
+
+Pick a random square in the grid. Mark the adjacent squares as walls and add them to the wall list.
+
+starting_pos = (1,1)
+
+X W X X X
+W C W X X
+X W X X X
+X X X X X
+X X X X X
+
+wall_list = [(1,0), (0,1), (1,2), (2,1)]
+
+While there are walls in the list:
+
+  Pick a random wall from the list
+
+  R = (2,1)
+  C = (1,1)
+  diff = (1,0)
+  opposite = R + diff ? = (2,1)+(1,0) = (3,1)
+
+  X W X X X
+  W C R X X
+  X W X X X
+  X X X X X
+  X X X X X
+
+  If the square on the opposite side is unvisited:
+
+    Make the wall a cell and make the square on the opposite side a wall.
+
+      X W X X X
+      W C C W X
+      X W X X X
+      X X X X X
+      X X X X X
+
+    Make the adjacent squares of the new cell into walls and add them to the wall list.
+
+    new_walls = [(2,0), (3,1), (2,2)]
+
+    X W W X X
+    W C C W X
+    X W W X X
+    X X X X X
+    X X X X X
+
+    wall_list = [(1,0), (0,1), (1,2), (2,1), (2,0), (3,1), (2,2)]
+
+  Remove the original wall from the list.
+
+  wall_list = [(1,0), (0,1), (1,2), (3,1)]
