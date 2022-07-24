@@ -40,7 +40,7 @@ class Wall(Coordinate):
     class_name = "wall"
 
 
-class Unvisited:
+class Unvisited(Coordinate):
     class_name = "unvisited"
 
 
@@ -82,8 +82,8 @@ class Index(FormView):
     def create_maze(self):
         self.maze = []
         # Denote all cells as unvisited
-        for i in range(0, self.height):
-            self.maze.append([Unvisited() for i in range(0, self.width)])
+        for y in range(0, self.height):
+            self.maze.append([Unvisited(x, y) for x in range(0, self.width)])
 
         # Randomize starting point and set it a cell
         starting_height = int(random.random()*self.height)
@@ -126,7 +126,7 @@ class Index(FormView):
 
                     if (s_cells < 2):
                         # Denote the new path
-                        self.maze[rand_wall[0]][rand_wall[1]] = Cell(rand_wall[1], rand_wall[0])
+                        self.create_coordinate(Cell, rand_wall[1], rand_wall[0])
 
                         # Mark the new walls
                         # Upper cell
@@ -151,9 +151,7 @@ class Index(FormView):
                                 walls.append([rand_wall[0], rand_wall[1]-1])
 
                     # Delete wall
-                    for wall in walls:
-                        if (wall[0] == rand_wall[0] and wall[1] == rand_wall[1]):
-                            walls.remove(wall)
+                    walls.remove(rand_wall)
 
                     continue
 
@@ -192,9 +190,7 @@ class Index(FormView):
                                 walls.append([rand_wall[0], rand_wall[1]+1])
 
                     # Delete wall
-                    for wall in walls:
-                        if (wall[0] == rand_wall[0] and wall[1] == rand_wall[1]):
-                            walls.remove(wall)
+                    walls.remove(rand_wall)
 
                     continue
 
@@ -228,9 +224,7 @@ class Index(FormView):
                                 walls.append([rand_wall[0], rand_wall[1]+1])
 
                     # Delete wall
-                    for wall in walls:
-                        if (wall[0] == rand_wall[0] and wall[1] == rand_wall[1]):
-                            walls.remove(wall)
+                    walls.remove(rand_wall)
 
                     continue
 
@@ -264,22 +258,18 @@ class Index(FormView):
                                 walls.append([rand_wall[0]-1, rand_wall[1]])
 
                     # Delete wall
-                    for wall in walls:
-                        if (wall[0] == rand_wall[0] and wall[1] == rand_wall[1]):
-                            walls.remove(wall)
+                    walls.remove(rand_wall)
 
                     continue
 
             # Delete the wall from the list anyway
-            for wall in walls:
-                if (wall[0] == rand_wall[0] and wall[1] == rand_wall[1]):
-                    walls.remove(wall)
+            walls.remove(rand_wall)
 
         # Mark the remaining unvisited cells as walls
-        for i in range(0, self.height):
-            for j in range(0, self.width):
-                if isinstance(self.maze[i][j], Unvisited):
-                    self.create_coordinate(Wall, j, i)
+        for row in self.maze:
+            for coord in row:
+                if isinstance(coord, Unvisited):
+                    self.create_coordinate(Wall, coord.x, coord.y)
 
         # Set entrance and exit
         for i in range(0, self.width):
