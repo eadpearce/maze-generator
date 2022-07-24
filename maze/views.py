@@ -105,29 +105,29 @@ class Index(FormView):
             [x, y+1],  # bottom
         ]
 
+    def add_wall(self, x, y):
+        self.create_coordinate(Wall, x, y)
+        self.walls.add(Wall(x, y))
+
     def mark_top_wall(self, rand_wall):
+        # if top is not a cell
         if not isinstance(self.maze[rand_wall.y-1][rand_wall.x], Cell):
-            self.create_coordinate(Wall, rand_wall.x, rand_wall.y-1)
-        if (Wall(rand_wall.x, rand_wall.y-1) not in self.walls):
-            self.walls.append(Wall(rand_wall.x, rand_wall.y-1))
+            self.add_wall(rand_wall.x, rand_wall.y-1)
 
     def mark_bottom_wall(self, rand_wall):
+        # if bottom is not a cell
         if not isinstance(self.maze[rand_wall.y+1][rand_wall.x], Cell):
-            self.create_coordinate(Wall, rand_wall.x, rand_wall.y+1)
-        if (Wall(rand_wall.x, rand_wall.y+1) not in self.walls):
-            self.walls.append(Wall(rand_wall.x, rand_wall.y+1))
+            self.add_wall(rand_wall.x, rand_wall.y+1)
 
     def mark_left_wall(self, rand_wall):
+        # if left is not a cell
         if not isinstance(self.maze[rand_wall.y][rand_wall.x-1], Cell):
-            self.create_coordinate(Wall, rand_wall.x-1, rand_wall.y)
-        if (Wall(rand_wall.x-1, rand_wall.y) not in self.walls):
-            self.walls.append(Wall(rand_wall.x-1, rand_wall.y))
+            self.add_wall(rand_wall.x-1, rand_wall.y)
 
     def mark_right_wall(self, rand_wall):
+        # if right is not a cell
         if not isinstance(self.maze[rand_wall.y][rand_wall.x+1], Cell):
-            self.create_coordinate(Wall, rand_wall.x+1, rand_wall.y)
-        if (Wall(rand_wall.x+1, rand_wall.y) not in self.walls):
-            self.walls.append(Wall(rand_wall.x+1, rand_wall.y))
+            self.add_wall(rand_wall.x+1, rand_wall.y)
 
     def create_maze(self):
         self.maze = Maze(self.width, self.height)
@@ -138,20 +138,19 @@ class Index(FormView):
 
         # Mark it as a cell and add surrounding walls to the list
         self.create_coordinate(Cell, starting_width, starting_height)
-        self.walls = []
+        self.walls = set()
 
         for x, y in self.get_surrounding_coords(starting_width, starting_height):
-            self.walls.append(Wall(x, y))
+            self.walls.add(Wall(x, y))
             # Denote walls in maze
             self.create_coordinate(Wall, x, y)
 
         while self.walls:
             # Pick a random wall
-            rand_wall = random.choice(self.walls)
+            rand_wall = random.choice(list(self.walls))
 
             # NOTE COORD ORDER
             # maze[y][x]
-            # rand_wall[y][x]
 
             # Check if it is a left wall
             if (rand_wall.x != 0):
