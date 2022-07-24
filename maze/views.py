@@ -41,6 +41,15 @@ class Coordinate:
         self.x = x
         self.y = y
 
+    def __repr__(self):
+        return f"<{type(self).__name__} at ({self.x}, {self.y})>"
+
+    def __sub__(self, other):
+        return Coordinate(abs(self.x - other.x), abs(self.y - other.y))
+
+    def __add__(self, other):
+        return Coordinate(self.x + other.x, self.y + other.y)
+
 
 class Cell(Coordinate):
 
@@ -62,9 +71,6 @@ class Cell(Coordinate):
         self.dead_end = dead_end
         self.entrance = entrance
         self.exit = exit
-
-    def __str__(self):
-        return f"{type(self).__name__} at ({self.x}, {self.y})"
 
 
 class Wall(Coordinate):
@@ -88,220 +94,118 @@ class Index(FormView):
     def height(self):
         return min(int(self.request.GET.get("height", 10)), 33)
 
-    # Find number of surrounding cells
-    def surrounding_cells(self, coord):
-        s_cells = 0
-        s_coords = self.get_surrounding_coords(coord.x, coord.y)
-        if coord.y > 0 and coord.y < self.maze.max_y and coord.x > 0 and coord.x < self.maze.max_x:
-            for x, y in s_coords:
-                if isinstance(self.maze[x][y], Cell):
-                    s_cells += 1
-        return s_cells
+    def opposite_squares(self, square):
+        squares = []
+        adjacent_cells = [c for c in self.get_adjacent_squares(square.x, square.y) if isinstance(c, Cell)]
 
-    def create_coordinate(self, cls, x, y, **kwargs):
-        self.maze[x][y] = cls(x, y, **kwargs)
+        if adjacent_cells:
+            for c in adjacent_cells:
+                cell = self.maze[c.x][c.y]
+                opposite_forward = square + (cell - square)
+                opposite_back = square - (cell - square)
 
-    def get_surrounding_coords(self, x, y):
-        return [
+                squares.append(self.maze[opposite_forward.x][opposite_forward.y])
+                squares.append(self.maze[opposite_back.x][opposite_back.y])
+
+        return squares
+
+    def is_edge(self, coord):
+        return not (coord.x > 0 and coord.x < self.maze.max_x and coord.y > 0 and coord.y < self.maze.max_y)
+
+    def add_to_maze(self, obj, **kwargs):
+        self.maze[obj.x][obj.y] = obj
+
+    def get_adjacent_coords(self, x, y):
+        all = [
             [x-1, y],  # left
             [x+1, y],  # right
             [x, y-1],  # top
             [x, y+1],  # bottom
         ]
+        # exclude edges
+        return [
+            [x, y] for x, y in all
+            if x > 0 and x < self.maze.max_x and
+            y > 0 and y < self.maze.max_y
+        ]
 
-    def add_wall(self, x, y):
-        self.create_coordinate(Wall, x, y)
-        self.walls.add(Wall(x, y))
+    def get_adjacent_squares(self, x, y):
+        coords = self.get_adjacent_coords(x, y)
+        return [
+            self.maze[x][y] for x, y in coords
+        ]
 
-    def mark_top_wall(self, rand_wall):
-        # if top is not a cell
-        if not isinstance(self.maze[rand_wall.x][rand_wall.y-1], Cell):
-            self.add_wall(rand_wall.x, rand_wall.y-1)
-
-    def mark_bottom_wall(self, rand_wall):
-        # if bottom is not a cell
-        if not isinstance(self.maze[rand_wall.x][rand_wall.y+1], Cell):
-            self.add_wall(rand_wall.x, rand_wall.y+1)
-
-    def mark_left_wall(self, rand_wall):
-        # if left is not a cell
-        if not isinstance(self.maze[rand_wall.x-1][rand_wall.y], Cell):
-            self.add_wall(rand_wall.x-1, rand_wall.y)
-
-    def mark_right_wall(self, rand_wall):
-        # if right is not a cell
-        if not isinstance(self.maze[rand_wall.x+1][rand_wall.y], Cell):
-            self.add_wall(rand_wall.x+1, rand_wall.y)
+    def get_adjacent_cells(self, x, y):
+        return [
+            c for c in self.get_adjacent_squares(x, y) if isinstance(c, Cell)
+        ]
 
     def create_maze(self):
         self.maze = Maze(self.width, self.height)
 
-        # Randomize starting point and set it a cell
+        # Randomize starting point and set it as a cell
         starting_height = random.randint(1, self.maze.max_y - 1)
         starting_width = random.randint(1, self.maze.max_x - 1)
 
         # Mark it as a cell and add surrounding walls to the list
-        self.create_coordinate(Cell, starting_width, starting_height)
+        self.add_to_maze(Cell(starting_width, starting_height, start_point=True))
         self.walls = set()
 
-        for x, y in self.get_surrounding_coords(starting_width, starting_height):
+        for x, y in self.get_adjacent_coords(starting_width, starting_height):
             self.walls.add(Wall(x, y))
-            # Denote walls in maze
-            self.create_coordinate(Wall, x, y)
+            self.add_to_maze(Wall(x, y))
 
         while self.walls:
             # Pick a random wall
             rand_wall = random.choice(list(self.walls))
 
-            # NOTE COORD ORDER
-            # maze[y][x]
+            adjacent_squares = self.get_adjacent_squares(rand_wall.x, rand_wall.y)
 
-            # Check if it is a left wall
-            if (rand_wall.x != 0):
-                # if left is unvisited and right is a cell
-                if (
-                    isinstance(self.maze[rand_wall.x-1][rand_wall.y], Unvisited) and
-                    isinstance(self.maze[rand_wall.x+1][rand_wall.y], Cell)
-                ):
-                    # Find the number of surrounding cells
-                    s_cells = self.surrounding_cells(rand_wall)
+            # find the square on the opposite side to the connecting cell
+            adjacent_cells = self.get_adjacent_cells(rand_wall.x, rand_wall.y)
 
-                    if (s_cells < 2):
-                        # Denote the new path
-                        self.create_coordinate(Cell, rand_wall.x, rand_wall.y)
+            if len(adjacent_cells) == 1:
+                for o_square in self.opposite_squares(rand_wall):
 
-                        # Mark the new walls
-                        # Upper cell
-                        if (rand_wall.y != 0):
-                            self.mark_top_wall(rand_wall)
+                    if isinstance(o_square, Unvisited):
+                        if not self.is_edge(o_square):
+                            new_wall = Wall(o_square.x, o_square.y)
+                        self.add_to_maze(Cell(rand_wall.x, rand_wall.y))
+                        self.add_to_maze(new_wall)
+                        self.walls.add(new_wall)
 
-                        # Bottom cell
-                        if (rand_wall.y != self.maze.max_y):
-                            self.mark_bottom_wall(rand_wall)
+                        for a_square in adjacent_squares:
+                            if isinstance(a_square, Unvisited):
+                                new_wall = Wall(a_square.x, a_square.y)
+                                self.add_to_maze(new_wall)
+                                self.walls.add(new_wall)
 
-                        # Leftmost cell
-                        if (rand_wall.x != 0):
-                            self.mark_left_wall(rand_wall)
-
-                    # Delete wall
-                    self.walls.remove(rand_wall)
-
-                    continue
-
-            # Check if it is an upper wall
-            if (rand_wall.y != 0):
-                # if top is unvisited and bottom is a cell
-                if (
-                    isinstance(self.maze[rand_wall.x][rand_wall.y-1], Unvisited) and
-                    isinstance(self.maze[rand_wall.x][rand_wall.y+1], Cell)
-                ):
-
-                    s_cells = self.surrounding_cells(rand_wall)
-                    if (s_cells < 2):
-                        # Denote the new path
-                        self.maze[rand_wall.x][rand_wall.y] = Cell(rand_wall.x, rand_wall.y)
-
-                        # Mark the new walls
-                        # Upper cell
-                        if (rand_wall.y != 0):
-                            self.mark_top_wall(rand_wall)
-
-                        # Leftmost cell
-                        if (rand_wall.x != 0):
-                            self.mark_left_wall(rand_wall)
-
-                        # Rightmost cell
-                        if (rand_wall.x != self.maze.max_x):
-                            self.mark_right_wall(rand_wall)
-
-                    # Delete wall
-                    self.walls.remove(rand_wall)
-
-                    continue
-
-            # Check the bottom wall
-            if (rand_wall.y != self.maze.max_y):
-                # if bottom is unvisited and top is a cell
-                if (
-                    isinstance(self.maze[rand_wall.x][rand_wall.y+1], Unvisited) and
-                    isinstance(self.maze[rand_wall.x][rand_wall.y-1], Cell)
-                ):
-
-                    s_cells = self.surrounding_cells(rand_wall)
-                    if (s_cells < 2):
-                        # Denote the new path
-                        self.maze[rand_wall.x][rand_wall.y] = Cell(rand_wall.x, rand_wall.y)
-
-                        # Mark the new walls
-                        if (rand_wall.y != self.maze.max_y):
-                            self.mark_bottom_wall(rand_wall)
-
-                        if (rand_wall.x != 0):
-                            self.mark_left_wall(rand_wall)
-
-                        if (rand_wall.x != self.maze.max_x):
-                            self.mark_right_wall(rand_wall)
-
-                    # Delete wall
-                    self.walls.remove(rand_wall)
-
-                    continue
-
-            # Check the right wall
-            if (rand_wall.x != self.maze.max_x):
-                # if right is unvisited and left is a cell
-                if (
-                    isinstance(self.maze[rand_wall.x+1][rand_wall.y], Unvisited) and
-                    isinstance(self.maze[rand_wall.x-1][rand_wall.y], Cell)
-                ):
-
-                    s_cells = self.surrounding_cells(rand_wall)
-                    if (s_cells < 2):
-                        # Denote the new path
-                        self.maze[rand_wall.x][rand_wall.y] = Cell(rand_wall.x, rand_wall.y)
-
-                        # Mark the new walls
-                        if (rand_wall.x != self.maze.max_x):
-                            self.mark_right_wall(rand_wall)
-
-                        if (rand_wall.y != self.maze.max_y):
-                            self.mark_bottom_wall(rand_wall)
-
-                        if (rand_wall.y != 0):
-                            self.mark_top_wall(rand_wall)
-
-                    # Delete wall
-                    self.walls.remove(rand_wall)
-
-                    continue
-
-            # Delete the wall from the list anyway
             self.walls.remove(rand_wall)
 
         # Mark the remaining unvisited cells as walls
         for coord in self.maze.all:
             if isinstance(coord, Unvisited):
-                self.create_coordinate(Wall, coord.x, coord.y)
+                self.add_to_maze(Wall(coord.x, coord.y))
 
         # Set entrance and exit
         # TODO: randomise this?
         # Entrance is at the top edge
         for i in range(0, self.maze.width):
             if isinstance(self.maze[i][1], Cell):
-                self.create_coordinate(Cell, i, 0, entrance=True)
+                self.add_to_maze(Cell(i, 0, entrance=True))
                 break
 
         # Exit is at the bottom edge
         for i in range(1, self.maze.width):
             if isinstance(self.maze[i][self.maze.max_y-1], Cell):
-                self.create_coordinate(Cell, i, self.maze.max_y, exit=True)
+                self.add_to_maze(Cell(i, self.maze.max_y, exit=True))
                 break
 
         # Mark the dead ends
         for coord in self.maze.all:
             if isinstance(coord, Cell):
-                s_cells = self.surrounding_cells(coord)
-                if s_cells == 1:
+                s_cells = self.get_adjacent_cells(coord.x, coord.y)
+                if len(s_cells) == 1:
                     coord.dead_end = True
 
     def get_context_data(self, *args, **kwargs):
