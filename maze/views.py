@@ -96,7 +96,7 @@ class Index(FormView):
 
     def opposite_squares(self, square):
         squares = []
-        adjacent_cells = [c for c in self.get_adjacent_squares(square.x, square.y) if isinstance(c, Cell)]
+        adjacent_cells = [c for c in self.get_adjacent_squares(square) if isinstance(c, Cell)]
 
         if adjacent_cells:
             for c in adjacent_cells:
@@ -129,15 +129,15 @@ class Index(FormView):
             y > 0 and y < self.maze.max_y
         ]
 
-    def get_adjacent_squares(self, x, y):
-        coords = self.get_adjacent_coords(x, y)
+    def get_adjacent_squares(self, coord):
+        coords = self.get_adjacent_coords(coord.x, coord.y)
         return [
             self.maze[x][y] for x, y in coords
         ]
 
-    def get_adjacent_cells(self, x, y):
+    def get_adjacent_cells(self, coord):
         return [
-            c for c in self.get_adjacent_squares(x, y) if isinstance(c, Cell)
+            c for c in self.get_adjacent_squares(coord) if isinstance(c, Cell)
         ]
 
     def create_maze(self):
@@ -159,10 +159,10 @@ class Index(FormView):
             # Pick a random wall
             rand_wall = random.choice(list(self.walls))
 
-            adjacent_squares = self.get_adjacent_squares(rand_wall.x, rand_wall.y)
+            adjacent_squares = self.get_adjacent_squares(rand_wall)
 
             # find the square on the opposite side to the connecting cell
-            adjacent_cells = self.get_adjacent_cells(rand_wall.x, rand_wall.y)
+            adjacent_cells = self.get_adjacent_cells(rand_wall)
 
             if len(adjacent_cells) == 1:
                 for o_square in self.opposite_squares(rand_wall):
@@ -204,7 +204,7 @@ class Index(FormView):
         # Mark the dead ends
         for coord in self.maze.all:
             if isinstance(coord, Cell):
-                s_cells = self.get_adjacent_cells(coord.x, coord.y)
+                s_cells = self.get_adjacent_cells(coord)
                 if len(s_cells) == 1:
                     coord.dead_end = True
 
